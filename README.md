@@ -1,10 +1,12 @@
 
 ![Dickson Lab](images/dickson_lab_logo.png)
 
-# Dickson Lab 16S Analysis SOP
+# Dickson Lab SOP for Analysis of 16S rRNA Gene Amplicon Data
 
 This is a guide for acquiring the materials for the **Dickson Lab SOP
-for Analysis of 16S rRNA Gene Amplicon Data**.
+for Analysis of 16S rRNA Gene Amplicon Data**. As of the latest update
+this inludes data and source code for a tutorial analysis of the lung
+microbiome.
 
 # Preparation & Setup
 

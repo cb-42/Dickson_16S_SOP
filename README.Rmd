@@ -8,8 +8,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ![Dickson Lab](images/dickson_lab_logo.png)
 
-# Dickson Lab 16S Analysis SOP
-This is a guide for acquiring the materials for the **Dickson Lab SOP for Analysis of 16S rRNA Gene Amplicon Data**.
+# Dickson Lab SOP for Analysis of 16S rRNA Gene Amplicon Data
+This is a guide for acquiring the materials for the **Dickson Lab SOP for Analysis of 16S rRNA Gene Amplicon Data**. As of the latest update this inludes data and source code for a tutorial analysis of the lung microbiome.  
 
 # Preparation & Setup
 Prior to starting, several pieces of software need to be acquired. Completing these first three steps is necessary in order to be able to begin working with the code. It should take between 15-30 minutes to complete these preparatory tasks.  
