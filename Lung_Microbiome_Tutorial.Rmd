@@ -1,7 +1,7 @@
 ---
 title: 'Dickson Lab: Lung Microbiome Analysis Tutorial'
 author: "Christopher A. Brown"
-date: "September 29, 2020 (updated)"
+date: "January 19, 2021 (updated)"
 output:
   html_document:
     code_folding: show
@@ -204,9 +204,10 @@ spec_abs <- readxl::read_xlsx("data/16S_EvaGreen__Heterogeneity1_Data.xlsx", she
 
 ctrl_abs <- readxl::read_xlsx("data/16S_EvaGreen__Heterogeneity1Ctrls_030618.xlsx", sheet = 2) %>% 
   dplyr::select(Sample_name = `Sample Name`, DNA_copies_per_ul = `Copies/ul Sample`) %>% # Rename the two columns of interest, and retain only these columns
-  drop_na() # drop rows with mising values
+  drop_na() %>% # drop rows with mising values
+  data.frame() # Avoid tibble indexing warning for next step (As of tibble 3.0.0)
 # Round up 0.57 DNA_copies to 1 (HomogCtrl_2)
-ctrl_abs[ctrl_abs[, "DNA_copies_per_ul"] < 1, ][, "DNA_copies_per_ul"] <- 1
+ctrl_abs[ctrl_abs[, "DNA_copies_per_ul"] < 1, "DNA_copies_per_ul"] <- 1
 
 abs_df <- full_join(spec_abs, ctrl_abs, by = c("Sample_name", "DNA_copies_per_ul")) %>% # We could also use bind_rows() or rbind() in this scenario since we renamed the columns to match. However, for more complex operations, it's safer to use a join function and specify the key columns.
   mutate(Type = factor(case_when( # We need to create a factor containing the types of samples for creating separate bars in an upcoming visualization.
@@ -217,8 +218,7 @@ abs_df <- full_join(spec_abs, ctrl_abs, by = c("Sample_name", "DNA_copies_per_ul
 # We also need to compute the averages and error
 avg_abs_df <- abs_df %>%
   group_by(Type) %>% # Before computing an average, identify what categories are being used to aggregate by. In this case, they're contained within the Type variable we just created.
-  summarize(mean_DNA_copies = mean(DNA_copies_per_ul), SEM = sqrt(var(DNA_copies_per_ul)/length(DNA_copies_per_ul))) %>% # Create mean and SEM columns
-  ungroup()
+  summarize(mean_DNA_copies = mean(DNA_copies_per_ul), SEM = sqrt(var(DNA_copies_per_ul)/length(DNA_copies_per_ul)), .groups = "drop") # Create mean and SEM columns
 ```
 
 Next, we'll examine this ddPCR data using a bar chart created with `ggplot`.  
@@ -402,8 +402,7 @@ heat_df <- otu_lung %>%
   pivot_longer(cols = -c("specimen", "log_IL1a"), names_to = "OTU", values_to = "Percentage", # Pivots (longer) all columns expect those specified by -str_which()
                names_ptypes = list(OTU = factor(levels = otu_order[1:20])))
   # group_by(OTU) %>%
-  # summarize(Mean_perc = mean(Percentage)) %>%
-  # ungroup()
+  # summarize(Mean_perc = mean(Percentage), .groups = "drop") %>%
 ```
 
 ```{r ggheatmap, fig.height=8, fig.width=12}
@@ -480,8 +479,7 @@ g_df <- inner_join(g_df, tax_df, by = "OTU")
 # Generate mean and sem for each group
 agg_df <- g_df %>%
   group_by(reagent_tissue, OTU, Phylum) %>%
-  summarize(Mean_perc = mean(Percentage), SEM = sqrt(var(Percentage)/length(Percentage))) %>%
-  ungroup()
+  summarize(Mean_perc = mean(Percentage), SEM = sqrt(var(Percentage)/length(Percentage)), .groups = "drop")
 ```
 
 First we'll create a basic rank abundance plot, then it will be gradually built up in the following examples.  
@@ -589,8 +587,7 @@ g_df <- inner_join(g_df, tax_df, by = "OTU")
 # Generate mean and sem for each group
 agg_df <- g_df %>%
   group_by(vendor, OTU, Phylum) %>%
-  summarize(Mean_perc = mean(Percentage), SEM = sqrt(var(Percentage)/length(Percentage))) %>%
-  ungroup()
+  summarize(Mean_perc = mean(Percentage), SEM = sqrt(var(Percentage)/length(Percentage)), .groups = "drop")
 
 # Add Genus levels to the OTU Number
 levels(agg_df$OTU) <- fct_inorder(paste0(otu_good_taxonomy[levels(agg_df$OTU), ]$Genus, " (", levels(agg_df$OTU), ")"))
@@ -754,8 +751,7 @@ fam_df <- otu_df %>%
   tidyr::pivot_longer(cols = -stringr::str_which(colnames(.), "Otu", negate = TRUE), names_to = "OTU", values_to = "Percentage") %>% # Take data into long form in preparation for join operation
   dplyr::inner_join(dplyr::select(otu_good_taxonomy, OTU, Family), by = "OTU") %>% # Determine which columns to join from taxonomy table. In this example, we're adding the Family column.
   dplyr::group_by(specimen, Family) %>%
-  dplyr::summarize(Percentage = sum(Percentage)) %>% # Note that this step removes any metadata columns which aren't grouped by
-  dplyr::ungroup() %>%
+  dplyr::summarize(Percentage = sum(Percentage), .groups = "drop") %>% # Note that this step removes any metadata columns which aren't grouped by
   tidyr::spread(key = Family, value = Percentage) %>% # Return data from long form to wide
   dplyr::inner_join(dplyr::select(otu_df, -contains("Otu")), by = "specimen") %>%
   dplyr::select(specimen, reagent_tissue:IL1a, everything()) # Pull metadata coluns to the front, all Family columns follow afterwards
@@ -801,7 +797,7 @@ meas <- colnames(fi_df)[2] # "MeanDecreaseAccuracy"
 
 # Identify the top features
 top_feat <- fi_df %>% dplyr::group_by(Feature) %>%
-  summarize(`:=`(!!meas, mean(.data[[meas]]))) %>%
+  summarize(`:=`(!!meas, mean(.data[[meas]])), .groups = "drop") %>%
   arrange(desc(.data[[meas]])) %>% 
   head(20) %>% # Top 20 features
   droplevels()
@@ -847,7 +843,7 @@ shan_lung <- shan_div %>%
 # Create summary statistics for bars/error bars  
 agg_shan_lung <- shan_lung %>%
   group_by(vendor) %>%
-  summarize(Mean_Sh = mean(Shannon), SEM_Sh = sqrt(var(Shannon)/length(Shannon))) # Create summary statistics
+  summarize(Mean_Sh = mean(Shannon), SEM_Sh = sqrt(var(Shannon)/length(Shannon)), .groups = "drop") # Create summary statistics
 ```
 
 To visualize the results, we'll plot the specimens' diversities and means using `ggplot()`.
@@ -880,7 +876,7 @@ rarefy_agg <- rarefy(dplyr::select(otu_raw, -label, -numOtus), sample = 1:1000) 
   left_join(dplyr::select(otu_df, specimen, reagent_tissue, vendor, tissue_type), by = "specimen") %>%  # Join reagent_tissue, vendor, and tissue_type columns
   dplyr::filter((reagent_tissue == "Control") | (tissue_type == "Lung")) %>% # Keep only lung specimens and negative controls
   group_by(vendor, Sample_Seq_Num) %>%
-  summarize(Mean_Species = mean(Unique_Species), SEM = sqrt(var(Unique_Species)/length(Unique_Species))) # Create summary statistics by vendor (negative controls are considered 'None')
+  summarize(Mean_Species = mean(Unique_Species), SEM = sqrt(var(Unique_Species)/length(Unique_Species)), .groups = "drop") # Create summary statistics by vendor (negative controls are considered 'None')
 
 # write.table(rarefy_raw,file = "rarefy.txt") # Create intermediate table
 ```
