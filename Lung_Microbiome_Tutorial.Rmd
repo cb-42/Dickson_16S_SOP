@@ -1,7 +1,7 @@
 ---
 title: 'Dickson Lab: Lung Microbiome Analysis Tutorial'
 author: "Christopher A. Brown"
-date: "January 19, 2021 (updated)"
+date: "January 20, 2021 (updated)"
 output:
   html_document:
     code_folding: show
@@ -944,12 +944,18 @@ Note that there will also be a figure-html folder containing all of the plots cr
 Congratulations! You've made it to the end of this introduction to lung microbiome analyses. Now that you've seen the basics, demonstrated between specimens and controls as well as within lung specimens, can you create additional analyses using the `cage` variable? Feel free to explore explore this and examine other possible relationships in the data on your own.  
 
 # VIII. Additional Resources  
-Resources for learning more about various topics.  
+Resources for learning more about various topics.   
 
-## 8.1 Mothur/QIIME  
+## 8.1 Processing & Analysis Software  
+Although we used mothur to process the 16S data prior to this analysis, alternatives include QIIME2 and DADA2. Beyond processing, each also provides varying support for exploration and analysis tasks during or post-processing.  
+
 [mothur](https://mothur.org/)  
+[QIIME2](https://qiime2.org/)  
+[DADA2](https://benjjneb.github.io/dada2/tutorial.html)
 
-## 8.2 R  
+## 8.2 R Resources & Tutorials  
+This section contains some guides and further reading about R and key libraries that facilitate your work.  
+
 [R for Data Science](https://r4ds.had.co.nz/)  
 [R Markdown tutorial](https://rmarkdown.rstudio.com/lesson-1.html)  
 [R Markdown: The Definitive Guide](https://bookdown.org/yihui/rmarkdown/)  
@@ -959,10 +965,14 @@ Resources for learning more about various topics.
 [Pivoting](https://tidyr.tidyverse.org/articles/pivot.html)  
 
 ## 8.3 Version control  
-Git/github  
+If you're new to git/github and version control in general, there are a variety of resources to help get you started:  
+
+git  
+[github tutorial](https://guides.github.com/activities/hello-world/)  
 
 ## 8.4 cbmbtools/course material  
-Functions for assisting in 16S microbiome analysis  
+[cbmbtools library](https://github.com/cb-42/cbmbtools)  
+    - This package contains functions for assisting in 16S microbiome analysis.  
 
 ## 8.5 other  
 [Bioconductor](https://www.bioconductor.org/)  
