@@ -1,7 +1,7 @@
 ---
 title: 'Dickson Lab: Lung Microbiome Analysis Tutorial'
 author: "Christopher A. Brown"
-date: "January 20, 2021 (updated)"
+date: "January 29, 2021 (updated)"
 output:
   html_document:
     code_folding: show
@@ -335,10 +335,17 @@ quiet_biplot <- quietly(function(ordiobj, ...) {
   biplot(ordiobj, ...)
 })
 
-biplot_results <- quiet_biplot(otu_con_lung_pca, type = "t")
+# Basic example: this can become difficult to read with many long specimen identifiers
+# biplot_results <- quiet_biplot(otu_con_lung_pca, type = "t")
 
-# example for replacing specimen labels with C or T
-#  biplot(prcomp(otu_con_lung_hel), xlabs=ifelse(str_detect(con_lung_df$reagent_tissue, "Control"), "C", "T")) # arrow.len = 0 will also remove warnings, at the cost of losing the arrowhead
+# A better approach is to use points color coded by the classes of interest as an additional layer on top of the biplot arrows
+biplot_results <- quiet_biplot(otu_con_lung_pca, type = "t", font = 2, font.lab = 2, xlab = "PC1 (17.82% Explained)", ylab = "PC2 (8.60% Explained)",
+                               main = "Biplot: Lung Tissue vs Control samples, colored by Type", display = "species", xlim = c(-0.8, 0.62)) # Note, plot zoom for xlim/ylim may need to be adjusted due to changing the display parameter
+points(otu_con_lung_pca, pch = 19, col = pcapal[c(5,2)][as.numeric(con_lung_df$reagent_tissue)]) # color palette adjustd to conflict less with biplot arrows
+legend("topright", levels(con_lung_df$reagent_tissue), pch = 19, col = pcapal[c(5,2)], title = "Type") # adjust legend colpal to match points
+
+# Another example for replacing specimen labels with C or T
+ # biplot(prcomp(otu_con_lung_hel), xlabs=ifelse(str_detect(con_lung_df$reagent_tissue, "Control"), "C", "T")) # arrow.len = 0 will also remove warnings, at the cost of losing the arrowhead
 ```
 
 #### 4.1.1.c Lung Tissue: Charles River vs Jackson Labs  
