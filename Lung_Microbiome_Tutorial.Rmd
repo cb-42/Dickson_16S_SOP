@@ -1,7 +1,7 @@
 ---
 title: 'Dickson Lab: Lung Microbiome Analysis Tutorial'
 author: "Christopher A. Brown"
-date: "January 29, 2021 (updated)"
+date: "February 9, 2021 (updated)"
 output:
   html_document:
     code_folding: show
@@ -918,7 +918,60 @@ legend("topright", levels(otu_lung$vendor), pch = 19, col = pcapal, title = "Ven
 ```
 
 ### Bray-Curtis  
-As wikipedia notes: [Bray–Curtis dissimilarity](https://en.wikipedia.org/wiki/Bray%E2%80%93Curtis_dissimilarity) is a is a statistic used to quantify the compositional dissimilarity between two different sites, based on counts at each site.   
+As wikipedia notes: [Bray–Curtis dissimilarity](https://en.wikipedia.org/wiki/Bray%E2%80%93Curtis_dissimilarity) is a statistic used to quantify the compositional dissimilarity between two different sites, based on counts at each site.  
+
+```{r bray-curtis}
+# This helper function will be used to disambiguate columns associated with paired BC comparisons
+# For example, the reagent_tissue for sample 1 could be different than sample 2, thus an identifier column 
+# might be necessary for each in order to filter the results as desired.
+bc_rename <- function(colname) {
+  if(str_detect(colname, ".x$")) { # For .x, simply remove the suffix
+    return(str_remove(colname, ".x$"))
+  } else if (str_detect(colname, ".y$")) {
+    return(str_replace(colname, ".y$", "_comparison")) # For .y, replace with _comparison suffix
+  } else { # Otherwise name does not need adjustment
+    return(colname)
+    }
+} 
+
+# Goal: Full BC matrix converted to a long dataframe of all possible specimen comparisons.
+# We could also add a step to filter for specimens of interest
+sub_df <- otu_df %>% # First, subset to keep rows of interest for the Bray-Curtis comparisons
+  dplyr::filter(reagent_tissue == "Tissue") %>% # Exclude controls
+  droplevels()
+
+bc_df <- sub_df %>%
+  dplyr::select(contains("Otu")) %>% # retain OTU columns only
+  vegdist(diag = TRUE, upper=TRUE) %>% # method = "bray" by default
+  as.matrix() %>%
+  as.data.frame(row.names = sub_df$specimen) %>%
+  setNames(sub_df$specimen) %>% # add column names
+  rownames_to_column("specimen") %>% # create specimen column from rownames
+  pivot_longer(cols = -specimen, names_to = "comparison", values_to = "BC") %>% # transform from wide to long
+  dplyr::filter(specimen != comparison) %>% # remove comparisons against the same specimen (the diagonal in the original distance matrix)
+  left_join(dplyr::select(otu_df, specimen:tissue_type, cage), by = "specimen") %>% # join cols for subsetting by specimen1
+  left_join(dplyr::select(otu_df, specimen:tissue_type, cage), by = c("comparison" = "specimen")) %>% # join cols for specimen2 (comparison)
+  rename_with(~ map_chr(., bc_rename)) # use the custom renaming function defined above
+
+# Here we'll subset to retain only the within vendor + tissue comparisons. We could also subset even further to group by `shipments` within vendors.
+bc_tissue_vend_df <- bc_df %>%
+  dplyr::filter(tissue_type == tissue_type_comparison, vendor == vendor_comparison) %>% # Comparisons of interest are within tissue + vendor groupings
+  droplevels() %>%
+  group_by(specimen, vendor, tissue_type) %>% # Carefully consider which variables to use for aggregation
+  summarize(Mean_BC = mean(BC), SEM_BC = sqrt(var(BC)/length(BC)), .groups = "drop")
+```
+
+```{r tissue_vendor_bc_viz,fig.height=8, fig.width=12}
+# Plot within vendor tissue-tissue BC comparisons
+ggplot(bc_tissue_vend_df, aes(x = vendor, y = Mean_BC, fill = vendor)) + 
+  geom_boxplot() + # alternatively, use a geom_col and an errorbar layer
+  geom_point(size=1, alpha=0.5, position = position_jitter(width = 0.175, seed = 8237)) + # add 'noisy' points for specimens (adjust width to improve visibility on discrete x-axis)
+  theme_bw() + # A minimalist theme
+  labs(y = "Mean Bray-Curtis", title = "Bray-Curtis Dissimilarity: Tissue samples by vendor") + # Adjust axis label and title
+  facet_grid(. ~ tissue_type) +
+  theme(panel.grid = element_blank(), legend.title = element_blank()) +
+  expand_limits(y = c(0,1)) # Start y-axis at 0
+```
 
 ### Unifrac  
 Future example. [Descriptive text here]  
@@ -951,7 +1004,7 @@ Note that there will also be a figure-html folder containing all of the plots cr
 Congratulations! You've made it to the end of this introduction to lung microbiome analyses. Now that you've seen the basics, demonstrated between specimens and controls as well as within lung specimens, can you create additional analyses using the `cage` variable? Feel free to explore explore this and examine other possible relationships in the data on your own.  
 
 # VIII. Additional Resources  
-Resources for learning more about various topics.   
+Resources for learning more about various topics.  
 
 ## 8.1 Processing & Analysis Software  
 Although we used mothur to process the 16S data prior to this analysis, alternatives include QIIME2 and DADA2. Beyond processing, each also provides varying support for exploration and analysis tasks during or post-processing.  
