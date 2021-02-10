@@ -827,33 +827,38 @@ ggplot(fi_df, aes(x = Feature, y = fi_df[, 2])) +
 ```
 
 # VI. Community Diversity
-In this section we'll explore measures of community diversity and how they can be used within our analyses.    
+In this section we'll explore several measures of community diversity and examine how they can be used within our analyses.  
 
 ## 6.1 α-diversity: within specimens
-First, we'll look at the diversity within specimen  
+First, we'll look at the diversity within specimens. We are interested in measures of:  
+  * **Richness** - how many unique taxa are there within a specimen?  
+  * **Evenness** - how evenly distributed are the taxa?  
+  * **Dominance** - what is the relative abundance of the dominant (largest %) taxa?  
 
-### Richness - how many unique taxa?  
+To measure α-diversity, we'll compute the [Shannon diversity](https://en.wikipedia.org/wiki/Diversity_index) using the `diversity()` function, which calculates the shannon index by default. Then we'll select the observations of interest and compute summary statistics. The formula for deriving the Shannon index is shown below:  
 
-### Evenness - how evenly distributed?  
-
-We'll compute the Shannon diversity with the `diversity()` function. Then we'll select the observations of interest and compute summary statistics.
+$$H' = -\sum_{i=1}^{R}p_{i} \ln p_{i}$$
 
 ```{r alpha_div}
-shan_div <- diversity(otu_good) %>% 
-  data.frame(Shannon = .) %>%
-  rownames_to_column("specimen") %>%
+# Create dataframe w/ Sample name, Shannon, Total Reads, Dominance on a per sample basis
+alpha_div_df <- bind_cols(specimen = otu_df$specimen,
+                          Shannon = diversity(otu_good), # Shannon diversity per specimen
+                          Total_Reads = pmap_dbl(data.frame(otu_good),  sum), # rowwise sum (by specimen)
+                          Dominance = pmap_dbl(dplyr::select(otu_df, contains("Otu")), max)) %>% # Dominance: max % of top OTU per specimen
+  # mutate(Dominance = round(Dominance, 3)) # %>% # optional rounding; pipe(s) will need to be connected
   left_join(otu_df[,1:6], by = "specimen") # Join first 6 metadata columns, allows for easier filtering
 
-shan_lung <- shan_div %>% 
-  dplyr::filter(tissue_type == "Lung") # Retain only lung specimens for visualization
+shan_lung <- alpha_div_df %>% 
+  dplyr::filter(tissue_type == "Lung") %>% # Retain only lung specimens for visualization
+  droplevels()
 
-# Create summary statistics for bars/error bars  
+# Create Shannon diversity summary statistics for bars/error bars  
 agg_shan_lung <- shan_lung %>%
   group_by(vendor) %>%
   summarize(Mean_Sh = mean(Shannon), SEM_Sh = sqrt(var(Shannon)/length(Shannon)), .groups = "drop") # Create summary statistics
 ```
 
-To visualize the results, we'll plot the specimens' diversities and means using `ggplot()`.
+To visualize the results, we'll plot the specimens' α-diversities and means using `ggplot()`.
 
 ```{r alpha_vis, fig.height=6, fig.width=8}
 ggplot(agg_shan_lung, aes(x = vendor, y = Mean_Sh, fill = vendor)) + # This brings in the aggregated dataframe and assigns columns to various plot elements
@@ -868,8 +873,7 @@ We can also test the difference between the means of these groups for significan
 
 ```{r sig_shan_lung}
 # T-Test for the two vendors. This approach would also work if there were 3 or more groups.
-TukeyHSD(aov(shan_lung[,"Shannon"] ~ shan_lung[, "vendor"]))
-# TukeyHSD(aov(shan_lung$Shannon ~ shan_lung$vendor)) # This code produces the same result as above
+TukeyHSD(aov(shan_lung$Shannon ~ shan_lung$vendor))
 ```
 
 Rarefaction curves can also be used to explore α-diversity. First, the data needs to be prepared.  
