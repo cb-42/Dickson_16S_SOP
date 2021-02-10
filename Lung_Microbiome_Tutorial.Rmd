@@ -1,7 +1,7 @@
 ---
 title: 'Dickson Lab: Lung Microbiome Analysis Tutorial'
 author: "Christopher A. Brown"
-date: "February 9, 2021 (updated)"
+date: "February 10, 2021 (updated)"
 output:
   html_document:
     code_folding: show
@@ -917,8 +917,11 @@ ordispider(otu_lung_pca, otu_lung$vendor, label = TRUE) # Draw lines from centro
 legend("topright", levels(otu_lung$vendor), pch = 19, col = pcapal, title = "Vendor") # Format and add details to legends
 ```
 
-### Bray-Curtis  
-As wikipedia notes: [Bray–Curtis dissimilarity](https://en.wikipedia.org/wiki/Bray%E2%80%93Curtis_dissimilarity) is a statistic used to quantify the compositional dissimilarity between two different sites, based on counts at each site.  
+### Bray-Curtis
+
+[Bray--Curtis dissimilarity](https://en.wikipedia.org/wiki/Bray%E2%80%93Curtis_dissimilarity) is a statistic used to quantify the compositional dissimilarity between two different sites, based on counts at each site. A score of 1 represents complete dissimilarity between two specimens, meaning no OTUs are shared between the specimens, for example. On the other hand, a score of 0 signifies complete similarity. The following formula provides the index of dissimilarity, though we'll use `vegdist` to handle computation:
+
+$$BC_{IJ} = 1 - \frac{2C_{IJ}}{S_{i} + S_{J}}$$
 
 ```{r bray-curtis}
 # This helper function will be used to disambiguate columns associated with paired BC comparisons
@@ -942,7 +945,7 @@ sub_df <- otu_df %>% # First, subset to keep rows of interest for the Bray-Curti
 
 bc_df <- sub_df %>%
   dplyr::select(contains("Otu")) %>% # retain OTU columns only
-  vegdist(diag = TRUE, upper=TRUE) %>% # method = "bray" by default
+  vegdist(diag = TRUE, upper = TRUE) %>% # method = "bray" by default
   as.matrix() %>%
   as.data.frame(row.names = sub_df$specimen) %>%
   setNames(sub_df$specimen) %>% # add column names
