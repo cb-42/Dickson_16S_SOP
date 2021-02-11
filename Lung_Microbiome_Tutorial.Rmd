@@ -1,7 +1,7 @@
 ---
 title: 'Dickson Lab: Lung Microbiome Analysis Tutorial'
 author: "Christopher A. Brown"
-date: "February 10, 2021 (updated)"
+date: "February 11, 2021 (updated)"
 output:
   html_document:
     code_folding: show
@@ -984,7 +984,7 @@ ggplot(bc_tissue_vend_df, aes(x = vendor, y = Mean_BC, fill = vendor)) +
 Future example. [Descriptive text here]  
 
 # VII. Reporting  
-Usually it's not enough that you've generated statistics or created visualizations. You also need to be able to share this work. Fortunately, there are a variety of ways to do this.
+Usually it's not enough that you've generated statistics or created visualizations. You also need to be able to share these results. Fortunately, there are a variety of ways to do this.
 
 ## 7.1 Exporting a dataframe  
 Here is an example of exporting `otu_lung` to a .csv file, which can then be opened in Excel or your spreadsheet editor of choice. Note that depending on your locale (whether , or ; is the expected separator), you may need to use `write.csv2()` to obtain the desired results. As an additional exercise, try changing the name of the dataframe or the name of the output file.  
@@ -995,7 +995,13 @@ write.csv(otu_lung, file = "otu_lung.csv")
 ```
 
 ## 7.2 Saving a plot  
-Next, we'll save a plot. Note that we will also have access to a folder with all of the plots after finishing step 7.3.  
+Next, we'll save a plot. There are several methods for doing this and one approach utilizing `ggsave` is shown in the following code chunk.  
+
+Note that we will also have access to a folder (in this case: **Lung_Microbiome_Tutorial_files/figure-html/**) with all of the plot images used in rendering the final report after finishing step 7.3, so these images could be retrieved from this folder after the knitting process is completed. If your report generates many figures, this might be a good way to go.  
+
+Additionally, right clicking on an image displayed inline (within Lung_Microbiome_Tutorial.Rmd) will bring up an option to save the image.  
+
+Yet another way to save a plot is to first save a plot to an object, for instance **p**, then type **p** followed by return in the console. Finally, navigate to the plot tab in RStudio and click the export drop down to reveal several methods for exporting the visualization that was just created from running **p**.  
 
 ```{r ggsave}
 # The optional `path` parameter can be added onto the filename, used to denote a different directory. Use ?ggsave to check out other parameters
