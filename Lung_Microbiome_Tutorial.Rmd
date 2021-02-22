@@ -1,7 +1,7 @@
 ---
 title: 'Dickson Lab: Lung Microbiome Analysis Tutorial'
 author: "Christopher A. Brown"
-date: "February 12, 2021 (updated)"
+date: "February 22, 2021 (updated)"
 output:
   html_document:
     code_folding: show
@@ -997,18 +997,22 @@ write_csv(otu_lung, "otu_lung.csv")
 The following code chunk creates dataframes aggregated to various taxonomic levels and saves them as .csv files in the project directory. Bonus: instead of using the following loop to write these tables to files, they could be added to the global environment instead.  
 
 ```{r multi_export}
+# Create prep dataframe to use at each stage of taxonomic aggregation
+taxa_prep_df <- otu_df %>%
+  mutate(specimen = fct_inorder(specimen)) %>% # necessary to make specimen a factor to prevent alphabetic reordering in group_by + summarize operation
+  dplyr::select(specimen, contains("Otu")) %>% # retains Specimen (or optionally adjust to Sample_name) and Otu cols
+  pivot_longer(cols = -stringr::str_which(colnames(.), "Otu", negate = TRUE), names_to = "OTU", values_to = "Percentage") # wide to long transformation
+  
 # Create dataframes aggregated at the specified taxonomic levels
 for(taxon in c("Phylum", "Class", "Order", "Family")) {
-  otu_df %>% # Contains results of otu_good after decostand
-  dplyr::select(specimen, contains("Otu")) %>% # retains Specimen (or optionally adjust to Sample_name) and Otu cols
-  pivot_longer(cols = -stringr::str_which(colnames(.), "Otu", negate = TRUE), names_to = "OTU", values_to = "Percentage") %>% # wide to long transformation
-  inner_join(dplyr::select(otu_good_taxonomy, OTU, all_of(taxon)), by = "OTU") %>% # join taxonomy table
-  group_by(specimen, .data[[{taxon}]]) %>% # prepare to aggregate at specified taxonomic level
-  summarize(Percentage = sum(Percentage), .groups = "drop") %>%
-  spread(key = taxon, value = Percentage) %>% # transform to wide
-  write_csv(paste0("CRJL_", tolower(taxon), "_table.csv")) # writes to .csv
-  # Note, above line can commented and line below uncommented to add these dataframes to the global env
-  # assign(x = paste0(substr(tolower(taxon), start = 1, stop = 3), "_df_ex"), pos = 1) # assigns values to df_names in curent environment (presumed to be global env)
+  taxa_prep_df %>% # Contains results of otu_good after decostand
+    inner_join(dplyr::select(otu_good_taxonomy, OTU, all_of(taxon)), by = "OTU") %>% # join taxonomy table
+    group_by(specimen, .data[[{taxon}]]) %>% # prepare to aggregate at specified taxonomic level
+    summarize(Percentage = sum(Percentage), .groups = "drop") %>%
+    spread(key = taxon, value = Percentage) %>% # transform to wide
+    write_csv(paste0("CRJL_", tolower(taxon), "_table.csv")) # writes to .csv
+    # Note, above line can commented and line below uncommented to add these dataframes to the global env
+    # assign(x = paste0(substr(tolower(taxon), start = 1, stop = 3), "_df_ex"), pos = 1) # assigns values to df_names in curent environment (presumed to be global env)
 }
 ```
 
