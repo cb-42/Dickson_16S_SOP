@@ -1052,6 +1052,8 @@ Although we used mothur to process the 16S data prior to this analysis, alternat
 This section contains some guides and further reading about R and key libraries that facilitate your work.  
 
 [R for Data Science](https://r4ds.had.co.nz/)  
+[Big Book of R](https://www.bigbookofr.com/)  
+[RStudio Cheatsheets](https://rstudio.com/resources/cheatsheets/)  
 [R Markdown tutorial](https://rmarkdown.rstudio.com/lesson-1.html)  
 [R Markdown: The Definitive Guide](https://bookdown.org/yihui/rmarkdown/)  
 [tidyverse](https://www.tidyverse.org/packages/)  
