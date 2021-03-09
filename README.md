@@ -5,7 +5,7 @@
 
 This is a guide for acquiring the materials for the **Dickson Lab SOP
 for Analysis of 16S rRNA Gene Amplicon Data**. As of the latest update
-this inludes data and source code for a tutorial analysis of the lung
+this includes data and source code for a tutorial analysis of the lung
 microbiome.
 
 # Preparation & Setup
@@ -19,7 +19,7 @@ complete these preparatory tasks.
 
 First you’ll need to acquire R itself. This can be done directly from
 [CRAN](https://cran.r-project.org/). If R is already installed, we
-recommend updating to the current version. You can check your R verison
+recommend updating to the current version. You can check your R version
 with `getRversion()`.
 
 ## II. RStudio
@@ -38,12 +38,12 @@ unzipped/extracted directory either to your desktop or preferred
 workspace. You will need to navigate to this extracted directory in the
 next step.
 
-Next, launch RStudio. Then create a new project, by clicking **File \>
+Next, launch RStudio. Then create a new project, by clicking **File &gt;
 New Project**, in the upper left of the RStudio interface. Click on
 **Existing Directory** and then browse to find the
 **Dickson\_16S\_SOP-master** directory that was extracted. Finally, left
 click the file entitled **Lung\_Microbiome\_Tutorial.Rmd** from the
-lower right pane in the RStudio inferface.
+lower right pane in the RStudio interface.
 
 This extracted directory includes all of the data and code needed for
 completing this walkthrough, though the only file you’ll need to
@@ -60,9 +60,9 @@ is [R for Data Science](https://r4ds.had.co.nz/). Reading chapters 1
 through 5 will familiarize you with the R design philosophy and syntax
 you’ll see during the hands-on presentation.
 
-## V. Knit the Tutorial (optional: \< 5 minutes)
+## V. Knit the Tutorial (optional: &lt; 5 minutes)
 
 Finally, the .Rmd filed included with these materials can be assembled
-into an HTML report by cliking the Knit button inside RStudio.
+into an HTML report by clicking the Knit button inside RStudio.
 
 ![Knit](images/knit.png)
