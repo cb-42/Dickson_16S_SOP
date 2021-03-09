@@ -1,7 +1,7 @@
 ---
 title: 'Dickson Lab: Lung Microbiome Analysis Tutorial'
 author: "Christopher A. Brown"
-date: "February 22, 2021 (updated)"
+date: "March 9, 2021 (updated)"
 output:
   html_document:
     code_folding: show
@@ -251,7 +251,7 @@ It's important to compare the distribution of bacteria present in specimens and 
 ```{r prep_pca_con_lung}
 # Filter data to retain controls and lung tissue only
 con_lung_df <- otu_df %>% # Note: this is just one of several possible approaches to filtering to retain the correct rows.
-  filter((reagent_tissue == "Control") | (tissue_type == "Lung")) %>% # 65 specimens
+  dplyr::filter((reagent_tissue == "Control") | (tissue_type == "Lung")) %>% # 65 specimens
   droplevels() # Remove factor levels with no remaining observations. This prevents potential headaches in downstream data wrangling and visualizations.
 rownames(con_lung_df) <- con_lung_df$specimen 
 
@@ -405,7 +405,7 @@ If you're comfortable with the ggplot approach to creating visualizations, you'l
 otu_order <- names(sort(colMeans(otu_lung[, stringr::str_detect(colnames(otu_lung), "Otu")]), decreasing = TRUE))
 
 heat_df <- otu_lung %>% 
-  select(specimen, log_IL1a, otu_order[1:20]) %>% # Select the top 20 OTUs
+  dplyr::select(specimen, log_IL1a, otu_order[1:20]) %>% # Select the top 20 OTUs
   pivot_longer(cols = -c("specimen", "log_IL1a"), names_to = "OTU", values_to = "Percentage", # Pivots (longer) all columns expect those specified by -str_which()
                names_ptypes = list(OTU = factor(levels = otu_order[1:20])))
   # group_by(OTU) %>%
@@ -431,19 +431,19 @@ heat_df <- dplyr::filter(otu_df, tissue_type == "Lung") %>%
   droplevels() %>% 
   remove_rownames() %>%
   column_to_rownames("specimen") %>% # This turns the specimen column into the rownames.
-  select(otu_order[1:20]) # Keep only the top 20 OTUs.
+  dplyr::select(otu_order[1:20]) # Keep only the top 20 OTUs.
 
 # Create Bray-Curtis matrix for lung specimens
-bc_lung_spec <- vegdist(select(heat_df, otu_order[1:20]), method = "bray")
+bc_lung_spec <- vegdist(dplyr::select(heat_df, otu_order[1:20]), method = "bray")
 # The linkage method to be used will depend on the nature of the data
 clust_lung_spec <- hclust(bc_lung_spec, method = "average")
 
 # Create Bray-Curtis matrix for OTUs
-bc_lung_otu <- vegdist(t(select(heat_df, otu_order[1:20])), method = "bray")
+bc_lung_otu <- vegdist(t(dplyr::select(heat_df, otu_order[1:20])), method = "bray")
 clust_lung_otu <- hclust(bc_lung_otu, method = "average")
 
 # Create the heatmap with dendrograms
-heatmap(as.matrix(select(heat_df, str_which(colnames(heat_df), "Otu"))), Rowv = as.dendrogram(clust_lung_spec), Colv = as.dendrogram(clust_lung_otu), margins=c(5,0))
+heatmap(as.matrix(dplyr::select(heat_df, str_which(colnames(heat_df), "Otu"))), Rowv = as.dendrogram(clust_lung_spec), Colv = as.dendrogram(clust_lung_otu), margins=c(5,0))
 ```
 
 ### 4.1.3 Rank Abundance  
@@ -458,21 +458,21 @@ In the following series of examples, we'll use RA plots to compare the community
 # Color by phyla
 
 ra_df <- otu_df %>% # Note at this is just one of several possible approaches to filtering to retain the correct rows
-  filter((reagent_tissue == "Control") | (tissue_type == "Lung")) %>% # 65 specimens
+  dplyr::filter((reagent_tissue == "Control") | (tissue_type == "Lung")) %>% # 65 specimens
   droplevels() # remove factor levels with no remaining observations - saves potential headaches in downstream wrangling and visualizations
 
 # Determine the order of OTUs based on means within Lung specimens
-otu_order <- names(sort(colMeans(filter(ra_df, tissue_type == "Lung")[, str_detect(colnames(ra_df), "Otu")]), decreasing = TRUE))
+otu_order <- names(sort(colMeans(dplyr::filter(ra_df, tissue_type == "Lung")[, str_detect(colnames(ra_df), "Otu")]), decreasing = TRUE))
 
 # Keep top 20 OTUs, then reshape the dataframe from wide to long format
 # g_df <- ra_df %>%
-#   select(str_which(colnames(ra_df), "Otu", negate = TRUE), colnames(ra_df[, otu_order[1:20]])) %>% # Keep non-OTU columns, followed by the 20 most abundant OTU columns
+#   dplyr::select(str_which(colnames(ra_df), "Otu", negate = TRUE), colnames(ra_df[, otu_order[1:20]])) %>% # Keep non-OTU columns, followed by the 20 most abundant OTU columns
 #   gather(key = OTU, value = Percentage, -str_which(colnames(ra_df), "Otu", negate = TRUE), factor_key = TRUE) %>% # factor_key is important because we care about the order (levels) in OTU
 #   droplevels()
 
 # Keep top 20 OTUs, then reshape the dataframe from wide to long format
 g_df <- ra_df %>%
-  select(str_which(colnames(ra_df), "Otu", negate = TRUE), colnames(ra_df[, otu_order[1:20]])) %>% # Keep non-OTU columns, followed by the 20 most abundant OTU columns
+  dplyr::select(str_which(colnames(ra_df), "Otu", negate = TRUE), colnames(ra_df[, otu_order[1:20]])) %>% # Keep non-OTU columns, followed by the 20 most abundant OTU columns
   pivot_longer(cols = -str_which(colnames(ra_df), "Otu", negate = TRUE), names_to = "OTU", values_to = "Percentage",
                names_ptypes = list(OTU = factor(levels = otu_order[1:20]))) # Ensuring OTU column is a factor is important due to the ordering expected in RA plots
 
@@ -572,15 +572,15 @@ Next we'll create another relative abundance plot to examine lung tissue specime
 # Add Genus identifier to the OTU number where possible
 
 ra_df <- otu_df %>% # Note at this is just one of several possible approaches to filtering to retain the correct rows
-  filter(tissue_type == "Lung") %>% # 40 specimens
+  dplyr::filter(tissue_type == "Lung") %>% # 40 specimens
   droplevels() # remove factor levels with no remaining observations - saves potential headaches in downstream wrangling and visualizations
 
 # Determine the order of OTUs based on means within Lung specimens from Charles River
-otu_order <- names(sort(colMeans(filter(ra_df, vendor == "Charles_River")[, str_detect(colnames(ra_df), "Otu")]), decreasing = TRUE))
+otu_order <- names(sort(colMeans(dplyr::filter(ra_df, vendor == "Charles_River")[, str_detect(colnames(ra_df), "Otu")]), decreasing = TRUE))
 
 # Keep top 20 OTUs, then reshape the dataframe from wide to long format
 g_df <- ra_df %>%
-  select(str_which(colnames(ra_df), "Otu", negate = TRUE), colnames(ra_df[, otu_order[1:20]])) %>% # Keep non-OTU columns, followed by the 20 most abundant OTU columns
+  dplyr::select(str_which(colnames(ra_df), "Otu", negate = TRUE), colnames(ra_df[, otu_order[1:20]])) %>% # Keep non-OTU columns, followed by the 20 most abundant OTU columns
   pivot_longer(cols = -str_which(colnames(ra_df), "Otu", negate = TRUE), names_to = "OTU", values_to = "Percentage",
                names_ptypes = list(OTU = factor(levels = otu_order[1:20]))) # Ensuring OTU column is a factor is important due to the ordering expected in RA plots
   
@@ -644,7 +644,7 @@ Suppose we didn't care for the white space, which represents the abundance of OT
 ```{r stacked_bar_otu_redux, fig.height=12, fig.width=12}
 # reprocess the data to retain all OTUs by keeping the entire otu_order vector
 g_df_redux <- ra_df %>%
-  select(str_which(colnames(ra_df), "Otu", negate = TRUE), colnames(ra_df[, otu_order])) %>% # Keep non-OTU columns, followed by the OTUs in order of abundance
+  dplyr::select(str_which(colnames(ra_df), "Otu", negate = TRUE), colnames(ra_df[, otu_order])) %>% # Keep non-OTU columns, followed by the OTUs in order of abundance
   pivot_longer(cols = -str_which(colnames(ra_df), "Otu", negate = TRUE), names_to = "OTU", values_to = "Percentage",
                names_ptypes = list(OTU = factor(levels = otu_order))) # Ensure OTU column is a factor is important due to the ordering expected in RA plots
 
@@ -729,7 +729,7 @@ While we could make use of our previous mvabund results and examine whether ther
 # # The following lines could be run with an mvabund model
 # # Restructure, sort, filter to retrieve significant OTUs
 # otu_ven_sigpvals <- data.frame(OTU = colnames(otu_mva_results$uni.p), uni_p = otu_mva_results$uni.p[2,]) %>%
-#   filter(uni_p <= .05) %>% # The threshold here can be adjusted to the desired level.
+#   dplyr::filter(uni_p <= .05) %>% # The threshold here can be adjusted to the desired level.
 #   droplevels() %>%
 #   arrange(uni_p) # Orders the pvalues
 # 
