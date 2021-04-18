@@ -1,7 +1,7 @@
 ---
 title: 'Dickson Lab: Lung Microbiome 16S Analysis Tutorial'
 author: "Christopher A. Brown"
-date: "March 12, 2021 (updated)"
+date: "April 17, 2021 (updated)"
 output:
   html_document:
     code_folding: show
@@ -197,14 +197,14 @@ It's important to quantify the total bacterial load, typically done as one of th
 We'll show an example using ddPCR, but first we need to load the data.  
 
 ```{r abs_abundance_prep}
-# The readxl library is installed along with tidyverse, but is not loaded with library(tidyverse). We can however access the read_xlsx function without loading readxl as shown below.
+# The readxl library is installed along with tidyverse, but is not loaded with library(tidyverse). We can however access the read_xlsx function without loading readxl as shown below with the readxl::read_xlsx notation.
 spec_abs <- readxl::read_xlsx("data/16S_EvaGreen__Heterogeneity1_Data.xlsx", sheet = 2) %>%
   dplyr::select(Sample_name = `Sample Name`, DNA_copies_per_ul = `Copies/ul DNA`) %>% # Rename the two columns of interest, and retain only these columns
   dplyr::filter(str_detect(Sample_name, "LUNG")) # Keep only the lung tissue samples
 
 ctrl_abs <- readxl::read_xlsx("data/16S_EvaGreen__Heterogeneity1Ctrls_030618.xlsx", sheet = 2) %>% 
   dplyr::select(Sample_name = `Sample Name`, DNA_copies_per_ul = `Copies/ul Sample`) %>% # Rename the two columns of interest, and retain only these columns
-  drop_na() %>% # drop rows with mising values
+  drop_na() %>% # drop rows with missing values
   data.frame() # Avoid tibble indexing warning for next step (As of tibble 3.0.0)
 # Round up 0.57 DNA_copies to 1 (HomogCtrl_2)
 ctrl_abs[ctrl_abs[, "DNA_copies_per_ul"] < 1, "DNA_copies_per_ul"] <- 1
@@ -240,7 +240,7 @@ ggplot(avg_abs_df, aes(x = Type, y = mean_DNA_copies, fill = Type)) + # This bri
 There are several tools we can use to compare the makeup of microbial communities.  
 
 ## 4.1 Visualization techniques  
-In this subsection we will explore visualization methods including PCA ordinations, biplots, rank abundance plots (bar charts), and heat maps.  
+In this subsection we will explore visualization methods including PCA ordinations, biplots, rank abundance plots (ordered bar charts), and heat maps.  
 
 ### 4.1.1 PCA Ordination  
 As a first step, we need to create a PCA model using only the data needed to make our comparison of interest.  
@@ -313,7 +313,7 @@ legend("topright", levels(con_lung_df$reagent_tissue), pch = 19, col = pcapal, t
 `vegan` also supports additional ordinations such as ellipses. Simply adding an `ordiellipse` call with a color parameter (`col`) will give us the following plot. Although other plot customizations could be made, this is where we'll stop for the purposes of this example.
 
 ```{r ellipse_con_lung, fig.height=10, fig.width=10}
-# This is very similar to the previous ordinaiton except that we're drawing ellipses rather than lines connecting the points to the centroids.
+# This is very similar to the previous ordination except that we're drawing ellipses rather than lines connecting the points to the centroids.
 plot(otu_con_lung_pca, type = "n", font = 2, font.lab = 2, xlab = "PC1 (17.82% Explained)", ylab = "PC2 (8.60% Explained)", main = "PCA of Lung Tissue vs Controls, colored by Type", display = "sites")
 points(otu_con_lung_pca, pch = 19, col = pcapal[as.numeric(con_lung_df$reagent_tissue)]) # pch determines the point shape and col determines the colors to be used.
 ordispider(otu_con_lung_pca, con_lung_df$reagent_tissue, label = TRUE) # Draw lines from centroids to the points belonging to each group.
@@ -341,7 +341,7 @@ quiet_biplot <- quietly(function(ordiobj, ...) {
 # A better approach is to use points color coded by the classes of interest as an additional layer on top of the biplot arrows
 biplot_results <- quiet_biplot(otu_con_lung_pca, type = "t", font = 2, font.lab = 2, xlab = "PC1 (17.82% Explained)", ylab = "PC2 (8.60% Explained)",
                                main = "Biplot: Lung Tissue vs Control samples, colored by Type", display = "species", xlim = c(-0.8, 0.62)) # Note, plot zoom for xlim/ylim may need to be adjusted due to changing the display parameter
-points(otu_con_lung_pca, pch = 19, col = pcapal[c(5,2)][as.numeric(con_lung_df$reagent_tissue)]) # color palette adjustd to conflict less with biplot arrows
+points(otu_con_lung_pca, pch = 19, col = pcapal[c(5,2)][as.numeric(con_lung_df$reagent_tissue)]) # color palette adjusted to conflict less with biplot arrows
 legend("topright", levels(con_lung_df$reagent_tissue), pch = 19, col = pcapal[c(5,2)], title = "Type") # adjust legend colpal to match points
 
 # Another example for replacing specimen labels with C or T
@@ -354,7 +354,7 @@ In this experiment, we sought to compare murine specimens from Charles River and
 ```{r prep_pca_lung}
 # Filter data to retain lung tissue only
 otu_lung <- dplyr::filter(otu_df, tissue_type == "Lung") %>%
-  droplevels() # remove levels that are no longer present due to filtering
+  droplevels() # remove levels corresponding to data that is no longer present due to filtering
 rownames(otu_lung) <- otu_lung$specimen
 
 # PCA of lung tissue specimens
@@ -422,7 +422,7 @@ ggplot(heat_df, aes(x = specimen, y = OTU)) +
 ```
 
 #### 4.1.2.b Base implementation & dendrogram  
-Next, we'll explore a different approach using base R functionality. This time we'll use dissimilarity data and contruct dendrograms to go with the plot.  
+Next, we'll explore a different approach using base R functionality. This time we'll use dissimilarity data and construct dendrograms to go with the plot.  
 
 ```{r dendro_heatmap, fig.height=8, fig.width=12}
 # Unfortunately, filtering and other tidyverse functions strip rownames, and rownames are useful for pulling information out of matrices.
@@ -447,7 +447,7 @@ heatmap(as.matrix(dplyr::select(heat_df, str_which(colnames(heat_df), "Otu"))), 
 ```
 
 ### 4.1.3 Rank Abundance  
-In the following series of examples, we'll use RA plots to compare the community composition in lung speciments against negative controls. Note that the strategies we'll use can be extended to conduct comparisons across any arbitrary groups, assuming metadata exists to identify the observations (rows) belonging to each group. For instance, we might compare four different types of tissue, or drill down into the controls and compare those subtypes.  
+In the following series of examples, we'll use RA plots to compare the community composition in lung specimens against negative controls. Note that the strategies we'll use can be extended to conduct comparisons across any arbitrary groups, assuming metadata exists to identify the observations (rows) belonging to each group. For instance, we might compare four different types of tissue, or drill down into the controls and compare those subtypes.  
 
 #### 4.1.3.a Comparison of Negative Controls against Lung Tisssue specimens  
 
@@ -457,7 +457,7 @@ In the following series of examples, we'll use RA plots to compare the community
 # Include an errorbar
 # Color by phyla
 
-ra_df <- otu_df %>% # Note at this is just one of several possible approaches to filtering to retain the correct rows
+ra_df <- otu_df %>% # Note that this is just one of several possible approaches to filtering to retain the correct rows
   dplyr::filter((reagent_tissue == "Control") | (tissue_type == "Lung")) %>% # 65 specimens
   droplevels() # remove factor levels with no remaining observations - saves potential headaches in downstream wrangling and visualizations
 
@@ -478,7 +478,7 @@ g_df <- ra_df %>%
 
 # Join Phylum column from taxonomy table
 tax_df <- otu_good_taxonomy[otu_good_taxonomy[,"OTU"] %in% otu_order[1:20], c("OTU", "Phylum")] # Keep only the rows from ranked OTU vector, and OTU + whatever taxonomic level to use for filling bars
-tax_df$OTU <- factor(tax_df$OTU, levels = otu_order[1:20]) # set OTU factor levels to be in the same order as in g_df. If this is not done, our OTU column will be coerced to a character vector when we join (we'll lose the levels)
+tax_df$OTU <- factor(tax_df$OTU, levels = otu_order[1:20]) # set OTU factor levels to be in the same order as in g_df. If this is not done, our OTU column will be coerced to a character vector when we join (we'll lose the factor levels)
 g_df <- inner_join(g_df, tax_df, by = "OTU")
 
 # dimensions have gone from 65 745 to 1300 18
@@ -504,11 +504,11 @@ Let's add an errorbar and improve the visual aesthetics.
 (q <- p + geom_errorbar(aes(ymin = Mean_perc - SEM, ymax = Mean_perc + SEM, width = 0.3)))
 
 # Clear background + modify theme (rotate x-axis labels, reposition legend)
-(q <- q + theme_bw() + # note that a theme_ layer added after other other theme modifications will remove these prior modifications
+(q <- q + theme_bw() + # note that a theme layer added after other other theme modifications will remove these prior modifications
     theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "top"))
 ```
 
-Adding Genus labels to Otu identifiers
+Adding Genus labels to OTU identifiers
 
 ```{r plot_ra_otu_lab, fig.height=6, fig.width=12}
 # Add Genus levels to the OTU Number
@@ -546,7 +546,7 @@ ggplot(agg_df, aes(x = OTU, y = Mean_perc, fill = reagent_tissue)) +
 How can we use fill color to show the phyla to which each OTU belongs?
 
 ```{r plot_ra_phy, fig.height=6, fig.width=12}
-# First we need to prepare the taxonomic data - In this case we did this earlier in our overall RA data prep.
+# First we need to prepare the taxonomic data. In this case we did this earlier in our overall RA data prep.
 
 # Next, simply change the fill parameter to Phylum and rerun the ggplot code
 ggplot(agg_df, aes(x = OTU, y = Mean_perc, fill = Phylum)) + 
@@ -558,7 +558,7 @@ ggplot(agg_df, aes(x = OTU, y = Mean_perc, fill = Phylum)) +
   scale_y_continuous(labels = unit_format(suffix = "%")) + 
   labs(title="Comparison of Lung Tissue and Controls", subtitle = "Ranked by lung tissue specimens", y = "% Relative Abundance")
 
-# Encourage participants to run these by commenting out a layer, altering 1 parameter to develop a deeper understanding of how to build up or alter a ggplot object
+# Try to experiment with the above code by running it again after commenting out a layer, or altering 1 parameter. This will help you to develop a deeper understanding of how to build up or alter a ggplot object.
 ```
 
 #### 4.1.3.b Comparison of Lung Tisssue specimens by vendor  
@@ -571,7 +571,7 @@ Next we'll create another relative abundance plot to examine lung tissue specime
 # Color by phyla
 # Add Genus identifier to the OTU number where possible
 
-ra_df <- otu_df %>% # Note at this is just one of several possible approaches to filtering to retain the correct rows
+ra_df <- otu_df %>% # Note that this is just one of several possible approaches to filtering to retain the correct rows
   dplyr::filter(tissue_type == "Lung") %>% # 40 specimens
   droplevels() # remove factor levels with no remaining observations - saves potential headaches in downstream wrangling and visualizations
 
@@ -600,7 +600,7 @@ agg_df <- g_df %>%
 levels(agg_df$OTU) <- fct_inorder(paste0(otu_good_taxonomy[levels(agg_df$OTU), ]$Genus, " (", levels(agg_df$OTU), ")"))
 ```
 
-This time, we'll create the final RA plot in one pass.  
+This time we'll create the final RA plot in one pass.  
 
 ```{r plot_ra_lung, fig.height=8, fig.width=12}
 (ra_vend_plot <- ggplot(agg_df, aes(x = OTU, y = Mean_perc, fill = Phylum)) + 
@@ -614,7 +614,7 @@ This time, we'll create the final RA plot in one pass.
 ```
 
 #### 4.1.3.c Stacked Bar examples  
-Stacked bars also us to view trends across samples, at the cost of potentially making it more difficult to clearly measure differences in OTUs. There are several strategies to consider when creating such a visualization. Sometimes, when there are many OTUS within a taxonomic level, it may be of interest to combine levels or combine groups of related OTUs to avoid hundreds of very small lines on the resulting bars. This improves the overall visual clarity, but there should be a compelling reason for performing the grouping operation. Additionally, just as in the Rank Abundance visualizations we've already seen, how categories (OTUs or otherwise) are ordered is an important component in clearly presenting one's results.  
+Stacked bars also allow us to view trends across samples, at the cost of potentially making it more difficult to clearly measure differences in OTUs. There are several strategies to consider when creating such a visualization. Sometimes, when there are many OTUS within a taxonomic level, it may be of interest to combine levels or combine groups of related OTUs to avoid hundreds of very small lines on the resulting bars. This improves the overall visual clarity, but there should be a compelling reason for performing the grouping operation. Additionally, just as in the Rank Abundance visualizations we've already seen, how categories (OTUs or otherwise) are ordered is an important component in clearly presenting one's results.  
 
 A basic example that requires no additional processing, can be constructed using Phylum, given that `g_df` already has this column thanks to our prior data preparation. The following visualization allows us to see broad trends and outliers in the relative abundance of various phyla across the samples.  
 
@@ -670,7 +670,7 @@ ggplot(g_df_redux, aes(x = mouse, y = Percentage, fill = fct_rev(OTU))) +
 Next we'll explore how to conduct significance testing.  
 
 ### 4.2.1 PERMANOVA (adonis)  
-The following is an example of a permanova implementation using vegan::adonis().  
+The following is an example of a PERMANOVA implementation using `vegan::adonis()`.  
 
 ```{r adonis}
 # Permanova
@@ -749,7 +749,7 @@ knitr::kable(mva_sigpvals, caption = "Vendors, Significant OTUs (.05)", align = 
 ```
 
 ### 5.1.2 Random forest (mean decrease in accuracy)  
-Note: this depends on whether we're using regression or classification. A generic variable importance plot is shown for one iteration of the model. For classification as shown below, we prefer to use MeanDecreaseAccuracy as our feature importance metric rather than MeanDecreaseGini, due to increased bias in the latter.  
+Note: The importance metric used depends on whether we're using a regression or classification random forest model. A generic variable importance plot is shown for one iteration of the model. For classification as shown below, we prefer to use MeanDecreaseAccuracy as our feature importance metric rather than MeanDecreaseGini, due to increased bias in the latter.  
 
 ```{r family_prep}
 # Aggregate the OTU data into family. This requires a fair amount of data reshaping and joining operations. Wrapping these steps into a function is ideal so that you don't have to retrace every step for simply changing a taxonomic level for aggregation (e.g. Phylum vs Family).
@@ -761,7 +761,7 @@ fam_df <- otu_df %>%
   dplyr::summarize(Percentage = sum(Percentage), .groups = "drop") %>% # Note that this step removes any metadata columns which aren't grouped by
   tidyr::spread(key = Family, value = Percentage) %>% # Return data from long form to wide
   dplyr::inner_join(dplyr::select(otu_df, -contains("Otu")), by = "specimen") %>%
-  dplyr::select(specimen, reagent_tissue:IL1a, everything()) # Pull metadata coluns to the front, all Family columns follow afterwards
+  dplyr::select(specimen, reagent_tissue:IL1a, everything()) # Pull metadata columns to the front, all Family columns follow afterwards
 ```
 
 Next, we'll run a basic randomForest.  
