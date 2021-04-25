@@ -1,7 +1,7 @@
 ---
 title: 'Dickson Lab: Lung Microbiome 16S Analysis Tutorial'
 author: "Christopher A. Brown"
-date: "April 17, 2021 (updated)"
+date: "April 25, 2021 (updated)"
 output:
   html_document:
     code_folding: show
@@ -372,6 +372,16 @@ summary(otu_lung_pca)$cont # 0.1458 0.10677 0.06776 proportion explained by firs
 # Unlike with ggplot(), these lines must all be run at once in order to produce the desired result.
 plot(otu_lung_pca, type = "n", font = 2, font.lab = 2, xlab = "PC1 (14.58% Explained)", ylab = "PC2 (10.68% Explained)", main = "PCA of Specimen Origin, colored by Vendor", display = "sites")
 points(otu_lung_pca, pch = 19, col = pcapal[as.numeric(otu_lung$vendor)]) # pch determines the point shape and col determines the colors to be used.
+ordispider(otu_lung_pca, otu_lung$vendor, label = TRUE) # Draw lines from centroids to the points belonging to each group.
+legend("topright", levels(otu_lung$vendor), pch = 19, col = pcapal, title = "Vendor") # Format and add details to legends
+```
+
+Let's also scale the point size with a quantitative variable and change point opacity. Note that it is easier to judge absolute differences in a quantitative variable using bars (for example) rather than point areas, but this can give us a general idea about the the measurements.  
+
+```{r spider_lung_scaled, fig.height=10, fig.width=10}
+# Now let's scale the point size by a quantitative measure (log_IL1a) and adjust the point opacity
+plot(otu_lung_pca, type = "n", font = 2, font.lab = 2, xlab = "PC1 (14.58% Explained)", ylab = "PC2 (10.68% Explained)", main = "PCA of Specimen Origin, colored by Vendor", display = "sites")
+points(otu_lung_pca, pch = 19, col = alpha(pcapal[as.numeric(otu_lung$vendor)], 0.6), cex = 2*otu_lung$log_IL1a) # Note the use of alpha around the color vector and cex for the size. The size scale is doubled to make differences more apparent.
 ordispider(otu_lung_pca, otu_lung$vendor, label = TRUE) # Draw lines from centroids to the points belonging to each group.
 legend("topright", levels(otu_lung$vendor), pch = 19, col = pcapal, title = "Vendor") # Format and add details to legends
 ```
