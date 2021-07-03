@@ -1,7 +1,7 @@
 ---
 title: 'Dickson Lab: Lung Microbiome 16S Analysis Tutorial'
 author: "Christopher A. Brown"
-date: "April 25, 2021 (updated)"
+date: "July 3, 2021 (updated)"
 output:
   html_document:
     code_folding: show
@@ -383,6 +383,17 @@ Let's also scale the point size with a quantitative variable and change point op
 plot(otu_lung_pca, type = "n", font = 2, font.lab = 2, xlab = "PC1 (14.58% Explained)", ylab = "PC2 (10.68% Explained)", main = "PCA of Specimen Origin, colored by Vendor", display = "sites")
 points(otu_lung_pca, pch = 19, col = alpha(pcapal[as.numeric(otu_lung$vendor)], 0.6), cex = 2*otu_lung$log_IL1a) # Note the use of alpha around the color vector and cex for the size. The size scale is doubled to make differences more apparent.
 ordispider(otu_lung_pca, otu_lung$vendor, label = TRUE) # Draw lines from centroids to the points belonging to each group.
+legend("topright", levels(otu_lung$vendor), pch = 19, col = pcapal, title = "Vendor") # Format and add details to legends
+```
+
+Finally, suppose we want to examine PC1 and PC3 instead of PC1 and PC2. The `choices` parameter allows us to select PCs besides the PC1 and PC2 defaults. We'll also need to update the axis labels accordingly.
+
+```{r spider_lung_scaled_pc1_pc3, fig.height=10, fig.width=10}
+# This approach combines base R plotting functionality and vegan's ordispider function, which creates the lines connecting points to the centroids.
+# Unlike with ggplot(), these lines must all be run at once in order to produce the desired result.
+plot(otu_lung_pca, choices = c(1,3), type = "n", font = 2, font.lab = 2, xlab = "PC1 (14.58% Explained)", ylab = "PC3 (6.78% Explained)", main = "PCA of Specimen Origin, colored by Vendor", display = "sites")
+points(otu_lung_pca, choices = c(1,3), pch = 19, col = alpha(pcapal[as.numeric(otu_lung$vendor)], 0.6), cex = 2*otu_lung$log_IL1a) # Note the use of alpha around the color vector and cex for the size. The size scale is doubled to make differences more apparent.
+ordispider(otu_lung_pca, choices = c(1,3), otu_lung$vendor, label = TRUE) # Draw lines from centroids to the points belonging to each group.
 legend("topright", levels(otu_lung$vendor), pch = 19, col = pcapal, title = "Vendor") # Format and add details to legends
 ```
 
