@@ -1,7 +1,7 @@
 ---
 title: 'Dickson Lab: Lung Microbiome 16S Analysis Tutorial'
 author: "Christopher A. Brown"
-date: "July 3, 2021 (updated)"
+date: "July 9, 2021 (updated)"
 output:
   html_document:
     code_folding: show
@@ -1051,12 +1051,21 @@ Yet another way to save a plot is to first save a plot to an object, for instanc
 ggsave(filename = "vendor_relabund.pdf", plot = ra_vend_plot, width = 30, height = 30, units = "cm")
 ```
 
-## 7.3 Generating a report: Knitting  
+## 7.3 Saving (or loading) a model 
+The following code chunk illustrates how a random forest model can be saved and read in. Note that `saveRDS` potentially allows you to save any R object.
+
+```{r saveRDS}
+# Here's how you can save and/or load a model
+saveRDS(rf_vendors, "rf_vend_model.rds")
+rf_vendors2 <- readRDS("rf_vend_model.rds") # Saved to a new object to allow comparison (it should contain identical information)
+```
+
+## 7.4 Generating a report: Knitting  
 If all goes well, we should also be able to create a report from the narrative and code contained within this R Markdown document that we've been working on. Click the Knit button (look for the blue ball of yarn) near the top of RStudio interface to generate the default report type, which is set to HTML for this document. An HTML document containing this report will be created in the current working directory and it will display as a popup window or in the RStudio Viewer pane. We can easily change the type of file that is created by altering the output type in the header at the top of this document.  
 
 Note that there will also be a figure-html folder containing all of the plots created through the code chunks in this document. For example, if the Rmd file (the one we're using) is called Lung_Microbiome_Tutorial, then the figures would be located in: Lung_Microbiome_Tutorial_files/figure-html.  
 
-## 7.4 Cage Challenge  
+## 7.5 Cage Challenge  
 Congratulations! You've made it to the end of this introduction to lung microbiome analyses. Now that you've seen the basics, demonstrated between specimens and controls as well as within lung specimens, can you create additional analyses using the `cage` variable? Feel free to explore explore this and examine other possible relationships in the data on your own.  
 
 # VIII. Additional Resources  
