@@ -1,7 +1,7 @@
 ---
 title: 'Dickson Lab: Lung Microbiome 16S Analysis Tutorial'
 author: "Christopher A. Brown"
-date: "July 9, 2021 (updated)"
+date: "July 31, 2021 (updated)"
 output:
   html_document:
     code_folding: show
@@ -755,7 +755,7 @@ While we could make use of our previous mvabund results and examine whether ther
 #   arrange(uni_p) # Orders the pvalues
 # 
 # # label OTUS
-# otu_ven_sigpvals$OTU <- fct_inorder(paste0(otu_good_taxonomy[levels(otu_ven_sigpvals$OTU), ]$Genus, " (", levels(otu_ven_sigpvals$OTU), ")"))
+# otu_ven_sigpvals$OTU <- fct_inorder(paste0(otu_good_taxonomy[otu_ven_sigpvals$OTU, ]$Genus, " (", otu_ven_sigpvals$OTU, ")"))
 ```
 
 Here is an example of formatting a dataframe (in this case containing pvalues) for display in a report.  
